@@ -36,7 +36,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const fetchProfile = async (userId: string) => {
     const { data } = await supabase
       .from('profiles')
-      .select('id, name, email, role, created_at, bio, avatar_url, cover_url, roles')
+      .select('id, name:username, role, bio, avatar_url, cover_url')
       .eq('id', userId)
       .maybeSingle();
     setProfile(data as Profile | null);
@@ -78,7 +78,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     const { error: profileError } = await supabase
       .from('profiles')
-      .insert({ id: userId, name, email });
+      .insert({ id: userId, username: name });
 
     if (profileError) return { error: profileError.message };
 
@@ -105,7 +105,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         session,
         profile,
         loading,
-        isAdmin: profile?.email === 'odimusic.office@gmail.com',
+        isAdmin: user?.email === 'odimusic.office@gmail.com',
         signUp,
         signIn,
         signOut,

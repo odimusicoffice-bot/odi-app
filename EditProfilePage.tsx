@@ -89,7 +89,7 @@ export default function EditProfilePage({ onBack }: EditProfilePageProps) {
       const { error: updateError } = await supabase
         .from('profiles')
         .update({
-          name: name.trim(),
+          username: name.trim(),
           bio: bio.trim() || null,
           avatar_url: finalAvatarUrl,
           cover_url: finalCoverUrl,
@@ -104,7 +104,8 @@ export default function EditProfilePage({ onBack }: EditProfilePageProps) {
         onBack();
       }, 1200);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to save profile.');
+      console.error('profile save failed', err);
+      setError('Could not save your profile. Please try again.');
     } finally {
       setSaving(false);
     }

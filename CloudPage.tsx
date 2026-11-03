@@ -1,7 +1,7 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState, type ChangeEvent } from 'react';
 import {
   ArrowLeft, Cloud, Upload, Pencil, X, Star, Play, Pause, Plus,
-  Music2, Share2, Clock, Save,
+  Music2, Share2, Clock, Save, Loader2,
 } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/context/AuthContext';
@@ -23,7 +23,7 @@ interface Track {
   starred: boolean;
   lyrics: string | null;
   cover_url: string | null;
-  audio_url: string | null;
+  file_url: string | null;
   duration: number | null;
   created_at: string;
 }
@@ -81,6 +81,9 @@ export default function CloudPage({ onBack }: CloudPageProps) {
   const [lyricsFor, setLyricsFor] = useState<string | null>(null);
   const [lyricsText, setLyricsText] = useState('');
   const [shareLink, setShareLink] = useState<string | null>(null);
+  const [uploading, setUploading] = useState(false);
+  const [uploadError, setUploadError] = useState<string | null>(null);
+  const trackInputRef = useRef<HTMLInputElement>(null);
 
   const loadTracks = useCallback(async () => {
     if (!user) return;
@@ -126,8 +129,8 @@ export default function CloudPage({ onBack }: CloudPageProps) {
       audioRef.current.pause();
       setPlayingId(null);
     } else {
-      if (track.audio_url) {
-        audioRef.current.src = track.audio_url;
+      if (track.file_url) {
+        audioRef.current.src = track.file_url;
         audioRef.current.play();
         setPlayingId(track.id);
       } else {
@@ -236,6 +239,43 @@ export default function CloudPage({ onBack }: CloudPageProps) {
     navigator.clipboard.writeText(link).catch(() => {});
   };
 
+  const handleTrackFile = async (e: ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    e.target.value = '';
+    if (!file || !user) return;
+    if (file.size > 100 * 1024 * 1024) {
+      setUploadError('Track must be under 100 MB.');
+      return;
+    }
+
+    setUploading(true);
+    setUploadError(null);
+    try {
+      const ext = file.name.split('.').pop()?.toLowerCase() ?? 'audio';
+      const filePath = `${user.id}/${Date.now()}.${ext}`;
+      const { error: uploadErr } = await supabase.storage
+        .from('tracks')
+        .upload(filePath, file, { contentType: file.type || undefined });
+      if (uploadErr) throw uploadErr;
+
+      const { data: urlData } = supabase.storage.from('tracks').getPublicUrl(filePath);
+      const title = file.name.replace(/\.[^.]+$/, '');
+      const { data, error: insertErr } = await supabase
+        .from('tracks')
+        .insert({ title, file_url: urlData.publicUrl })
+        .select()
+        .single();
+      if (insertErr) throw insertErr;
+
+      setTracks((prev) => [data as Track, ...prev]);
+    } catch (err) {
+      console.error('track upload failed', err);
+      setUploadError('Could not upload your track. Please try again.');
+    } finally {
+      setUploading(false);
+    }
+  };
+
   return (
     <div className="relative min-h-screen bg-[#0A0A0A] px-6 pb-28 pt-8 sm:px-10">
       <audio ref={audioRef} onTimeUpdate={handleTimeUpdate} onEnded={() => setPlayingId(null)} />
@@ -253,11 +293,28 @@ export default function CloudPage({ onBack }: CloudPageProps) {
           <h1 className="font-anton text-5xl uppercase leading-none text-white sm:text-6xl">
             Cloud
           </h1>
-          <button className="mb-1 flex items-center gap-2 rounded-full bg-[#3B82F6] px-5 py-3 text-sm font-semibold text-white transition-all hover:bg-[#2563EB] hover:shadow-lg hover:shadow-[#3B82F6]/30">
-            <Upload size={16} strokeWidth={2} />
-            Upload Track
+          <button
+            onClick={() => trackInputRef.current?.click()}
+            disabled={uploading}
+            className="mb-1 flex items-center gap-2 rounded-full bg-[#3B82F6] px-5 py-3 text-sm font-semibold text-white transition-all hover:bg-[#2563EB] hover:shadow-lg hover:shadow-[#3B82F6]/30 disabled:opacity-60"
+          >
+            {uploading ? <Loader2 size={16} strokeWidth={2} className="animate-spin" /> : <Upload size={16} strokeWidth={2} />}
+            {uploading ? 'Uploading...' : 'Upload Track'}
           </button>
+          <input
+            ref={trackInputRef}
+            type="file"
+            accept="audio/*"
+            onChange={handleTrackFile}
+            className="hidden"
+          />
         </div>
+
+        {uploadError && (
+          <div className="mt-6 rounded-xl border border-[#EF4444]/30 bg-[#EF4444]/10 px-4 py-3 text-sm text-[#EF4444]">
+            {uploadError}
+          </div>
+        )}
 
         {loading ? (
           <div className="mt-24 flex flex-col items-center text-center">
