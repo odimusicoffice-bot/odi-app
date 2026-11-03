@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { Loader2 } from 'lucide-react';
 import Header from '@/components/Header';
 import Hero from '@/components/Hero';
 import Carousel from '@/components/Carousel';
@@ -78,7 +79,10 @@ function AppContent() {
   if (loading) {
     return (
       <div className="flex h-screen items-center justify-center bg-[#0A0A0A]">
-        <div className="font-anton text-2xl uppercase text-white">ODI LABS</div>
+        <div className="flex flex-col items-center gap-6">
+          <div className="font-anton text-2xl uppercase text-white">ODI LABS</div>
+          <Loader2 size={24} className="animate-spin text-[#3B82F6]" />
+        </div>
       </div>
     );
   }
