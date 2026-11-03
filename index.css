@@ -1,0 +1,98 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --color-bg: #0A0A0A;
+  --color-blue: #3B82F6;
+  --color-text: #FFFFFF;
+  --color-muted: #888888;
+  --color-line: #222222;
+}
+
+html, body, #root {
+  height: 100%;
+}
+
+body {
+  background-color: #0A0A0A;
+  color: #FFFFFF;
+  font-family: 'Inter', sans-serif;
+  -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+  overflow-y: auto;
+}
+
+.font-anton {
+  font-family: 'Anton', sans-serif;
+  letter-spacing: 0.02em;
+}
+
+.no-scrollbar::-webkit-scrollbar { display: none; }
+.no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+.snap-carousel {
+  scroll-snap-type: x proximity;
+  scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch;
+  scroll-snap-stop: normal;
+}
+.snap-item {
+  scroll-snap-align: center;
+  scroll-snap-stop: normal;
+}
+
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(24px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.animate-fade-up { animation: fadeInUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) both; }
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+.animate-fade { animation: fadeIn 0.6s ease both; }
+
+@keyframes scaleIn {
+  from { opacity: 0; transform: scale(0.92); }
+  to { opacity: 1; transform: scale(1); }
+}
+.animate-scale-in { animation: scaleIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) both; }
+
+@keyframes floatPill {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-4px); }
+}
+.animate-float { animation: floatPill 4s ease-in-out infinite; }
+
+@keyframes spinVinyl {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+.animate-spin-vinyl { animation: spinVinyl 12s linear infinite; }
+
+/* Music Player animations */
+@keyframes slideDown {
+  from { opacity: 0; transform: translate(-50%, -120%); }
+  to { opacity: 1; transform: translate(-50%, 0); }
+}
+.animate-slide-down { animation: slideDown 0.45s cubic-bezier(0.16, 1, 0.3, 1) both; }
+
+@keyframes expandPlayer {
+  from { opacity: 0; transform: scale(0.85); }
+  to { opacity: 1; transform: scale(1); }
+}
+.animate-expand-player { animation: expandPlayer 0.4s cubic-bezier(0.16, 1, 0.3, 1) both; }
+
+@keyframes marquee {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+.animate-marquee { animation: marquee 8s linear infinite; }
+
+@keyframes fadeInOverlay {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+.animate-fade-overlay { animation: fadeInOverlay 0.3s ease both; }

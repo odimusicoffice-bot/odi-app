@@ -1,0 +1,294 @@
+import { useState } from 'react';
+import Header from '@/components/Header';
+import Hero from '@/components/Hero';
+import Carousel from '@/components/Carousel';
+import BottomNav, { type NavId } from '@/components/BottomNav';
+import SignUpModal from '@/components/SignUpModal';
+import SignUpPage from '@/components/SignUpPage';
+import SignInPage from '@/components/SignInPage';
+import ProfilePage from '@/components/ProfilePage';
+import AdminPanel from '@/components/AdminPanel';
+import CloudPage from '@/components/CloudPage';
+import NotesPage from '@/components/NotesPage';
+import MapPage from '@/components/MapPage';
+import ArtistsPage from '@/components/ArtistsPage';
+import ArtistProfilePage from '@/components/ArtistProfilePage';
+import SettingsPage from '@/components/SettingsPage';
+import SupportPage from '@/components/SupportPage';
+import ContactsPage from '@/components/ContactsPage';
+import ComingSoonPage from '@/components/ComingSoonPage';
+import AuditionsPage from '@/components/AuditionsPage';
+import SideMenu from '@/components/SideMenu';
+import RosterSection from '@/components/RosterSection';
+import EditProfilePage from '@/components/EditProfilePage';
+import { AuthProvider, useAuth } from '@/context/AuthContext';
+import { PlayerProvider } from '@/context/PlayerContext';
+import MusicPlayer from '@/components/MusicPlayer';
+
+type View =
+  | 'home'
+  | 'signup'
+  | 'signin'
+  | 'profile'
+  | 'admin'
+  | 'cloud'
+  | 'notes'
+  | 'map'
+  | 'artists'
+  | 'artist-profile'
+  | 'settings'
+  | 'support'
+  | 'contacts'
+  | 'about'
+  | 'audition'
+  | 'store'
+  | 'edit-profile';
+
+function AppContent() {
+  const { user, isAdmin, loading, signOut } = useAuth();
+  const [view, setView] = useState<View>('home');
+  const [modalOpen, setModalOpen] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [focusEventId, setFocusEventId] = useState<number | undefined>(undefined);
+
+  const openModal = () => setModalOpen(true);
+  const closeModal = () => setModalOpen(false);
+
+  const goToSignUp = () => {
+    setModalOpen(false);
+    setView('signup');
+  };
+  const goToSignIn = () => {
+    setModalOpen(false);
+    setView('signin');
+  };
+  const goHome = () => setView('home');
+  const goToProfile = () => setView('profile');
+  const goToAdmin = () => setView('admin');
+  const setNav = (id: NavId) => setView(id);
+
+  const handleProfileClick = () => {
+    if (user) {
+      setView('profile');
+    } else {
+      openModal();
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="flex h-screen items-center justify-center bg-[#0A0A0A]">
+        <div className="font-anton text-2xl uppercase text-white">ODI LABS</div>
+      </div>
+    );
+  }
+
+  if (!user && view === 'signup') {
+    return <SignUpPage onBack={goHome} onSwitchToSignIn={goToSignIn} />;
+  }
+  if (!user && view === 'signin') {
+    return <SignInPage onBack={goHome} onSwitchToSignUp={goToSignUp} />;
+  }
+
+  if (user && isAdmin && view === 'admin') {
+    return <AdminPanel onBack={goToProfile} />;
+  }
+
+  if (user && view === 'profile') {
+    return (
+      <>
+        <ProfilePage
+          onBack={goHome}
+          onAdminPanel={goToAdmin}
+          onNavigate={(v) => setView(v as View)}
+          onSignOut={async () => {
+            await signOut();
+            setView('home');
+          }}
+        />
+        <BottomNav
+          active="home"
+          onNavigate={setNav}
+          onProfileClick={handleProfileClick}
+          profileActive
+        />
+      </>
+    );
+  }
+
+  if (user && view === 'edit-profile') {
+    return (
+      <>
+        <EditProfilePage onBack={goToProfile} />
+        <BottomNav
+          active="home"
+          onNavigate={setNav}
+          onProfileClick={handleProfileClick}
+          profileActive
+        />
+      </>
+    );
+  }
+
+  if (user && view === 'settings') {
+    return (
+      <>
+        <SettingsPage onBack={goHome} />
+        <BottomNav active="home" onNavigate={setNav} onProfileClick={handleProfileClick} />
+      </>
+    );
+  }
+
+  if (view === 'support') {
+    return (
+      <>
+        <SupportPage onBack={goHome} />
+        <BottomNav active="home" onNavigate={setNav} onProfileClick={handleProfileClick} />
+      </>
+    );
+  }
+
+  if (view === 'contacts') {
+    return (
+      <>
+        <ContactsPage onBack={goHome} />
+        <BottomNav active="home" onNavigate={setNav} onProfileClick={handleProfileClick} />
+      </>
+    );
+  }
+
+  if (view === 'about') {
+    return (
+      <>
+        <ComingSoonPage title="About Us" onBack={goHome} />
+        <BottomNav active="home" onNavigate={setNav} onProfileClick={handleProfileClick} />
+      </>
+    );
+  }
+
+  if (view === 'audition') {
+    return (
+      <>
+        <AuditionsPage onBack={goHome} />
+        <BottomNav active="home" onNavigate={setNav} onProfileClick={handleProfileClick} />
+      </>
+    );
+  }
+
+  if (view === 'store') {
+    return (
+      <>
+        <ComingSoonPage title="Store" onBack={goHome} />
+        <BottomNav active="home" onNavigate={setNav} onProfileClick={handleProfileClick} />
+      </>
+    );
+  }
+
+  if (view === 'cloud') {
+    return (
+      <>
+        <CloudPage onBack={goHome} />
+        <BottomNav active="cloud" onNavigate={setNav} onProfileClick={handleProfileClick} />
+      </>
+    );
+  }
+
+  if (view === 'notes') {
+    return (
+      <>
+        <NotesPage
+          onBack={goHome}
+          onViewEvent={(eventId) => {
+            setFocusEventId(eventId);
+            setView('map');
+          }}
+        />
+        <BottomNav active="notes" onNavigate={setNav} onProfileClick={handleProfileClick} />
+      </>
+    );
+  }
+
+  if (view === 'map') {
+    return (
+      <MapPage
+        onBack={goHome}
+        focusEventId={focusEventId}
+        onNavigate={setNav}
+        onProfileClick={handleProfileClick}
+      />
+    );
+  }
+
+  if (view === 'artists') {
+    return (
+      <>
+        <ArtistsPage onBack={goHome} onViewProfile={() => setView('artist-profile')} />
+        <BottomNav active="artists" onNavigate={setNav} onProfileClick={handleProfileClick} />
+      </>
+    );
+  }
+
+  if (view === 'artist-profile') {
+    return (
+      <>
+        <ArtistProfilePage onBack={() => setView('artists')} />
+        <BottomNav active="artists" onNavigate={setNav} onProfileClick={handleProfileClick} />
+      </>
+    );
+  }
+
+  const navActive: NavId = 'home';
+  return (
+    <div className="relative flex min-h-screen flex-col overflow-y-auto overflow-x-hidden bg-[#0A0A0A]">
+      <Header
+        onSignIn={goToSignIn}
+        onProfile={goToProfile}
+        onOpenMenu={() => setMenuOpen(true)}
+      />
+      <Hero />
+      <div style={{ marginTop: '40px' }}>
+        <Carousel onLockedAction={user ? goToProfile : goToSignUp} />
+      </div>
+      <RosterSection />
+      <BottomNav
+        active={navActive}
+        onNavigate={setNav}
+        onProfileClick={handleProfileClick}
+      />
+      <SignUpModal
+        open={modalOpen}
+        onClose={closeModal}
+        onSignUp={goToSignUp}
+        onSignIn={goToSignIn}
+      />
+      <SideMenu
+        open={menuOpen}
+        onClose={() => setMenuOpen(false)}
+        signedIn={!!user}
+        onSettings={() => setView('settings')}
+        onSupport={() => setView('support')}
+        onAbout={() => setView('about')}
+        onAudition={() => setView('audition')}
+        onStore={() => setView('store')}
+        onContacts={() => setView('contacts')}
+        onSignOut={async () => {
+          await signOut();
+          setView('home');
+        }}
+      />
+    </div>
+  );
+}
+
+function App() {
+  return (
+    <AuthProvider>
+      <PlayerProvider>
+        <AppContent />
+        <MusicPlayer />
+      </PlayerProvider>
+    </AuthProvider>
+  );
+}
+
+export default App;
